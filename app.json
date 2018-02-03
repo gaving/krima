@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Krima",
+    "description": "Greek Word Of The Day",
+    "slug": "krima",
+    "privacy": "public",
+    "sdkVersion": "25.0.0",
+    "version": "1.1.0",
+    "orientation": "portrait",
+    "primaryColor": "#cccccc",
+    "icon": "./assets/icons/app-icon.png",
+    "loading": {
+      "icon": "./assets/icons/loading-icon.png"
+    },
+    "packagerOpts": {
+      "assetExts": ["ttf", "mp4"]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "coffee.gavin.krima"
+    },
+    "android": {
+      "package": "coffee.gavin.krima"
+    }
+  }
+}
