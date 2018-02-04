@@ -19,17 +19,15 @@ class ProfileScreen extends Component {
       />
     )
   };
-  state = {
-    profiles: [],
-    currentIndex: 1
-  };
   onPress() {
     this.props.navigation.navigate("List", {});
   }
   render() {
+    const { params } = this.props.navigation.state;
+
     return (
       <View style={styles.container}>
-        <ProfileView onPress={this.onPress.bind(this)} />
+        <ProfileView {...params} onPress={this.onPress.bind(this)} />
       </View>
     );
   }

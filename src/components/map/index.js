@@ -5,25 +5,23 @@ import { MapView } from "expo";
 const { width, height } = Dimensions.get("window");
 const SCREEN_WIDTH = width;
 const ASPECT_RATIO = width / height;
-const LATITUDE = 55.953056;
-const LONGITUDE = -3.188889;
-const LATITUDE_DELTA = 0.0322;
+const LATITUDE_DELTA = 0.5;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 
 export class Map extends React.Component {
   constructor(props) {
     super(props);
+    const { latitude, longitude } = this.props;
 
     this.state = {
       region: {
-        latitude: LATITUDE,
-        longitude: LONGITUDE,
+        latitude: latitude,
+        longitude: longitude,
         latitudeDelta: LATITUDE_DELTA,
         longitudeDelta: LONGITUDE_DELTA
       }
     };
   }
-
   render() {
     return (
       <View style={styles.container}>

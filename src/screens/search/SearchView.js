@@ -13,13 +13,12 @@ import { Avatar } from "../../components";
 import { Query } from "react-apollo";
 import { Ionicons } from "@expo/vector-icons";
 
-let moment = require("moment");
-
 import gql from "graphql-tag";
 
-const movieQuery = gql`
+const userQuery = gql`
   query findPerson($forename: String!) {
     people: findPerson(forename: $forename) {
+      id
       forename
       surname
       city
@@ -52,7 +51,7 @@ class SearchView extends React.Component {
   }
 
   _keyExtractor(item, index) {
-    return item;
+    return item.id;
   }
 
   _renderSeparator() {
@@ -64,7 +63,7 @@ class SearchView extends React.Component {
     let name = `${user.forename} ${user.surname}`;
     let photo = require("../../../assets/img/photo.jpg");
     return (
-      <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+      <TouchableOpacity onPress={this.props.onPress.bind(this, user)}>
         <View style={styles.container}>
           <Avatar rkType="circle" style={styles.avatar} img={photo} />
           <View style={styles.content}>
@@ -99,14 +98,14 @@ class SearchView extends React.Component {
             placeholder="Search"
           />
         </View>
-        <Query query={movieQuery} variables={{ forename: text }}>
+        <Query query={userQuery} variables={{ forename: text }}>
           {result => {
-            console.log(result);
-
             if (!result || result.loading) {
               return <ActivityIndicator />;
             }
-
+            if (result.error) {
+              return <ActivityIndicator />;
+            }
             if (!result.error) {
               const { data } = result;
 

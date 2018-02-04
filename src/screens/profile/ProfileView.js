@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 
 import Config from "../../../config.json";
+import { Query } from "react-apollo";
 import { Ionicons } from "@expo/vector-icons";
 
 import { FontIcons } from "../../../assets/icons";
@@ -14,6 +15,7 @@ import { RkCard, RkStyleSheet, RkText, RkButton } from "react-native-ui-kitten";
 import {
   AsyncStorage,
   ScrollView,
+  ActivityIndicator,
   View,
   Image,
   Text,
@@ -21,6 +23,26 @@ import {
 } from "react-native";
 
 import { AppLoading } from "expo";
+
+import gql from "graphql-tag";
+
+const userQuery = gql`
+  query findPersonById($id: Int!) {
+    person: findPersonById(id: $id) {
+      id
+      forename
+      surname
+      city
+      latitude
+      longitude
+      totalOffended
+      totalWitnessed
+      totalSuspected
+      totalReported
+      totalChildren
+    }
+  }
+`;
 
 class ProfileView extends Component {
   static propTypes = {
@@ -31,56 +53,82 @@ class ProfileView extends Component {
   };
 
   render() {
+    const { id = 100 } = this.props;
+
     const photo = require("../../../assets/img/photo.jpg");
 
     return (
-      <ScrollView style={styles.root}>
-        <View style={[styles.header, styles.bordered]}>
-          <View style={styles.row}>
-            <View style={styles.buttons}>
-              <RkButton style={styles.button} rkType="icon circle">
-                <RkText rkType="moon large primary">{FontIcons.profile}</RkText>
-              </RkButton>
-            </View>
-            <Avatar img={photo} rkType="big" />
-            <View style={styles.buttons}>
-              <RkButton style={styles.button} rkType="icon circle">
-                <RkText rkType="moon large primary">{FontIcons.mail}</RkText>
-              </RkButton>
-            </View>
-          </View>
-          <View style={styles.section}>
-            <RkText rkType="header2">Tyler Durden</RkText>
-          </View>
-        </View>
-        <View style={styles.userInfo}>
-          <View style={styles.section}>
-            <TouchableOpacity onPress={this.props.onPress.bind(this)}>
-              <RkText rkType="header3" style={styles.space}>
-                4
-              </RkText>
-            </TouchableOpacity>
-            <RkText rkType="secondary1 hintColor">Family</RkText>
-          </View>
-          <View style={styles.section}>
-            <TouchableOpacity onPress={this.props.onPress.bind(this)}>
-              <RkText rkType="header3" style={styles.space}>
-                16
-              </RkText>
-            </TouchableOpacity>
-            <RkText rkType="secondary1 hintColor">Associates</RkText>
-          </View>
-          <View style={styles.section}>
-            <TouchableOpacity onPress={this.props.onPress.bind(this)}>
-              <RkText rkType="header3" style={styles.space}>
-                3
-              </RkText>
-            </TouchableOpacity>
-            <RkText rkType="secondary1 hintColor">Accomplices</RkText>
-          </View>
-        </View>
-        <Map />
-      </ScrollView>
+      <Query query={userQuery} variables={{ id }}>
+        {result => {
+          if (!result || result.loading) {
+            return <ActivityIndicator />;
+          }
+          if (result.error) {
+            return <ActivityIndicator />;
+          }
+          if (!result.error) {
+            const { data } = result;
+            return (
+              <ScrollView style={styles.root}>
+                <View style={[styles.header, styles.bordered]}>
+                  <View style={styles.row}>
+                    <View style={styles.buttons}>
+                      <RkButton style={styles.button} rkType="icon circle">
+                        <RkText rkType="moon large primary">
+                          {FontIcons.profile}
+                        </RkText>
+                      </RkButton>
+                    </View>
+                    <Avatar img={photo} rkType="big" />
+                    <View style={styles.buttons}>
+                      <RkButton style={styles.button} rkType="icon circle">
+                        <RkText rkType="moon large primary">
+                          {FontIcons.mail}
+                        </RkText>
+                      </RkButton>
+                    </View>
+                  </View>
+                  <View style={styles.section}>
+                    <RkText rkType="header2">{`${data.person.forename} ${
+                      data.person.surname
+                    }`}</RkText>
+                  </View>
+                </View>
+                <View style={styles.userInfo}>
+                  <View style={styles.section}>
+                    <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+                      <RkText rkType="header3" style={styles.space}>
+                        {data.person.totalChildren}
+                      </RkText>
+                    </TouchableOpacity>
+                    <RkText rkType="secondary1 hintColor">Children</RkText>
+                  </View>
+                  <View style={styles.section}>
+                    <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+                      <RkText rkType="header3" style={styles.space}>
+                        {data.person.totalOffended}
+                      </RkText>
+                    </TouchableOpacity>
+                    <RkText rkType="secondary1 hintColor">Offended</RkText>
+                  </View>
+                  <View style={styles.section}>
+                    <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+                      <RkText rkType="header3" style={styles.space}>
+                        {data.person.totalWitnessed}
+                      </RkText>
+                    </TouchableOpacity>
+                    <RkText rkType="secondary1 hintColor">Witnessed</RkText>
+                  </View>
+                </View>
+                <Map
+                  latitude={data.person.latitude}
+                  longitude={data.person.longitude}
+                />
+              </ScrollView>
+            );
+          }
+        }}
+      </Query>
     );
   }
 }

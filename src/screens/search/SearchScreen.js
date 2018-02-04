@@ -20,12 +20,8 @@ class SearchScreen extends Component {
       />
     )
   };
-  state = {
-    profiles: [],
-    currentIndex: 1
-  };
   onPress(user) {
-    this.props.navigation.navigate("Profile", {});
+    this.props.navigation.navigate("Profile", { id: user.id });
   }
   render() {
     return (

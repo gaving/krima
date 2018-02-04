@@ -31,8 +31,8 @@ const MainNavigator = TabNavigator(
     },
     Profile: {
       screen: ProfileScreen,
-      path: "profile",
-      params: { id: 0 },
+      path: "profile/:id",
+      params: { id: 100 },
       navigationOptions: {
         header: null
       }
