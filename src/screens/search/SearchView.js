@@ -1,18 +1,39 @@
 import React from "react";
-import { FlatList, View, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Text,
+  FlatList,
+  ActivityIndicator,
+  View,
+  StyleSheet,
+  TouchableOpacity
+} from "react-native";
 import _ from "lodash";
 import { RkStyleSheet, RkText, RkTextInput } from "react-native-ui-kitten";
 import { Avatar } from "../../components";
+import { Query } from "react-apollo";
 import { Ionicons } from "@expo/vector-icons";
 
 let moment = require("moment");
 
+import gql from "graphql-tag";
+
+const movieQuery = gql`
+  query findPerson($forename: String!) {
+    people: findPerson(forename: $forename) {
+      forename
+      surname
+      city
+      country
+    }
+  }
+`;
+
 class SearchView extends React.Component {
   constructor(props) {
     super(props);
-    this.renderHeader = this._renderHeader.bind(this);
     this.renderItem = this._renderItem.bind(this);
     this.state = {
+      text: "",
       data: []
     };
   }
@@ -25,73 +46,38 @@ class SearchView extends React.Component {
   }
 
   _filter(text) {
-    let pattern = new RegExp(text, "i");
-    let chats = _.filter(this.chats, chat => {
-      if (
-        chat.withUser.firstName.search(pattern) != -1 ||
-        chat.withUser.lastName.search(pattern) != -1
-      )
-        return chat;
+    this.setState({
+      text
     });
-
-    this.setState({ data: chats });
   }
 
   _keyExtractor(item, index) {
-    return item.withUser.id;
+    return item;
   }
 
   _renderSeparator() {
     return <View style={styles.separator} />;
   }
 
-  _renderHeader() {
+  _renderItem(obj) {
+    const user = obj.item;
+    let name = `${user.forename} ${user.surname}`;
+    let photo = require("../../../assets/img/photo.jpg");
     return (
-      <View style={styles.searchContainer}>
-        <RkTextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChange={event => this._filter(event.nativeEvent.text)}
-          label={<Ionicons name="md-search" />}
-          rkType="row"
-          placeholder="Search"
-        />
-      </View>
-    );
-  }
-
-  _renderItem(info) {
-    let name = `${info.item.withUser.firstName} ${info.item.withUser.lastName}`;
-    let last = info.item.messages[info.item.messages.length - 1];
-    return (
-      <TouchableOpacity
-        onPress={() =>
-          this.props.navigation.navigate("Chat", {
-            userId: info.item.withUser.id
-          })
-        }
-      >
+      <TouchableOpacity onPress={this.props.onPress.bind(this)}>
         <View style={styles.container}>
-          <Avatar
-            rkType="circle"
-            style={styles.avatar}
-            img={info.item.withUser.photo}
-          />
+          <Avatar rkType="circle" style={styles.avatar} img={photo} />
           <View style={styles.content}>
             <View style={styles.contentHeader}>
               <RkText rkType="header5">{name}</RkText>
-              <RkText rkType="secondary4 hintColor">
-                {moment()
-                  .add(last.time, "seconds")
-                  .format("LT")}
-              </RkText>
+              <RkText rkType="secondary4 hintColor">{user.country}</RkText>
             </View>
             <RkText
               numberOfLines={2}
               rkType="primary3 mediumLine"
               style={{ paddingTop: 5 }}
             >
-              {last.text}
+              {user.city}
             </RkText>
           </View>
         </View>
@@ -100,16 +86,45 @@ class SearchView extends React.Component {
   }
 
   render() {
+    const { text } = this.state;
     return (
-      <FlatList
-        style={styles.root}
-        data={this.state.data}
-        extraData={this.state}
-        ListHeaderComponent={this.renderHeader}
-        ItemSeparatorComponent={this._renderSeparator}
-        keyExtractor={this._keyExtractor}
-        renderItem={this.renderItem}
-      />
+      <View>
+        <View style={styles.searchContainer}>
+          <RkTextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            onChange={event => this._filter(event.nativeEvent.text)}
+            label={<Ionicons name="md-search" />}
+            rkType="row"
+            placeholder="Search"
+          />
+        </View>
+        <Query query={movieQuery} variables={{ forename: text }}>
+          {result => {
+            console.log(result);
+
+            if (!result || result.loading) {
+              return <ActivityIndicator />;
+            }
+
+            if (!result.error) {
+              const { data } = result;
+
+              return (
+                <FlatList
+                  style={styles.root}
+                  data={data.people}
+                  extraData={this.state}
+                  ListHeaderComponent={<View />}
+                  ItemSeparatorComponent={this._renderSeparator}
+                  keyExtractor={this._keyExtractor}
+                  renderItem={this.renderItem}
+                />
+              );
+            }
+          }}
+        </Query>
+      </View>
     );
   }
 }

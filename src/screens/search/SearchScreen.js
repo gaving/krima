@@ -24,8 +24,8 @@ class SearchScreen extends Component {
     profiles: [],
     currentIndex: 1
   };
-  onPress() {
-    this.props.navigation.navigate("List", {});
+  onPress(user) {
+    this.props.navigation.navigate("Profile", {});
   }
   render() {
     return (

@@ -2,6 +2,12 @@ import React, { Component } from "react";
 
 import { StackNavigator, TabNavigator } from "react-navigation";
 import { Platform } from "react-native";
+
+import { ApolloClient } from "apollo-client";
+import { createHttpLink } from "apollo-link-http";
+import { InMemoryCache } from "apollo-cache-inmemory";
+import { ApolloProvider } from "react-apollo";
+
 import { ListScreen } from "./screens/list";
 
 import { SearchScreen } from "./screens/search";
@@ -11,15 +17,17 @@ import cacheAssetsAsync from "./utilities/cacheAssetsAsync";
 
 import { AppLoading } from "expo";
 
+const client = new ApolloClient({
+  link: createHttpLink({ uri: "http://192.168.1.107:3000/graphql" }),
+  cache: new InMemoryCache()
+});
+
 const MainNavigator = TabNavigator(
   {
     Search: {
       screen: SearchScreen,
       path: "search",
-      params: { id: 0 },
-      navigationOptions: {
-        header: null
-      }
+      params: { id: 0 }
     },
     Profile: {
       screen: ProfileScreen,
@@ -80,11 +88,13 @@ export default class Krima extends Component {
       );
     }
     return (
-      <Navigator
-        ref={nav => {
-          this.navigator = nav;
-        }}
-      />
+      <ApolloProvider client={client}>
+        <Navigator
+          ref={nav => {
+            this.navigator = nav;
+          }}
+        />
+      </ApolloProvider>
     );
   }
 }
