@@ -35,11 +35,18 @@ const userQuery = gql`
       city
       latitude
       longitude
+      children {
+        id
+      }
+      accomplices {
+        id
+      }
       totalOffended
       totalWitnessed
       totalSuspected
       totalReported
       totalChildren
+      totalAccomplices
     }
   }
 `;
@@ -96,20 +103,32 @@ class ProfileView extends Component {
                 </View>
                 <View style={styles.userInfo}>
                   <View style={styles.section}>
-                    <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+                    <TouchableOpacity
+                      onPress={this.props.onPress.bind(
+                        this,
+                        data.person.id,
+                        "children"
+                      )}
+                    >
                       <RkText rkType="header3" style={styles.space}>
                         {data.person.totalChildren}
                       </RkText>
                     </TouchableOpacity>
-                    <RkText rkType="secondary1 hintColor">Children</RkText>
+                    <RkText rkType="secondary1 hintColor">Reported</RkText>
                   </View>
                   <View style={styles.section}>
-                    <TouchableOpacity onPress={this.props.onPress.bind(this)}>
+                    <TouchableOpacity
+                      onPress={this.props.onPress.bind(
+                        this,
+                        data.person.id,
+                        "accomplices"
+                      )}
+                    >
                       <RkText rkType="header3" style={styles.space}>
-                        {data.person.totalOffended}
+                        {data.person.totalAccomplices}
                       </RkText>
                     </TouchableOpacity>
-                    <RkText rkType="secondary1 hintColor">Offended</RkText>
+                    <RkText rkType="secondary1 hintColor">Accomplices</RkText>
                   </View>
                   <View style={styles.section}>
                     <TouchableOpacity onPress={this.props.onPress.bind(this)}>

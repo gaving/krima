@@ -1,15 +1,51 @@
 import React, { Component } from "react";
-import moment from "moment";
 
-import { View, StyleSheet, ListView, TouchableOpacity } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  View,
+  StyleSheet,
+  TouchableOpacity
+} from "react-native";
 
 import { RkText, RkTextInput, RkStyleSheet } from "react-native-ui-kitten";
-import { ActivityIndicator } from "expo";
+import { Avatar } from "../../components";
 
 import { Ionicons } from "@expo/vector-icons";
+import { Query } from "react-apollo";
 
-const WORD_SET = [{ id: 1, source: "ok", translation: "yeah" }];
+import gql from "graphql-tag";
 
+const childrenQuery = gql`
+  query findPersonById($id: Int!) {
+    person: findPersonById(id: $id) {
+      id
+      results: children {
+        id
+        forename
+        surname
+        city
+        latitude
+        longitude
+      }
+    }
+  }
+`;
+const accompliceQuery = gql`
+  query findPersonById($id: Int!) {
+    person: findPersonById(id: $id) {
+      id
+      results: accomplices {
+        id
+        forename
+        surname
+        city
+        latitude
+        longitude
+      }
+    }
+  }
+`;
 class ListScreen extends Component {
   static navigationOptions = {
     title: "List",
@@ -29,93 +65,80 @@ class ListScreen extends Component {
 
   constructor(props) {
     super(props);
-
-    // this.words = WORD_SET;
-    const dayOfYear = moment().dayOfYear();
-    this.words = WORD_SET.slice(0, dayOfYear + 1).reverse();
-
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-    this.state = {
-      data: ds.cloneWithRows(this.words)
-    };
-
-    this.filter = this._filter.bind(this);
-    this.setData = this._setData.bind(this);
-    this.renderHeader = this._renderHeader.bind(this);
-    this.renderRow = this._renderRow.bind(this);
+    this.renderItem = this._renderItem.bind(this);
   }
 
-  async componentWillMount() {}
-
-  _setData(data) {
-    let ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
-    this.setState({
-      data: ds.cloneWithRows(data)
-    });
+  _keyExtractor(item, index) {
+    return item.id;
   }
 
-  _renderRow(row) {
-    const { id, source, translation } = row;
+  _renderSeparator() {
+    return <View style={styles.separator} />;
+  }
+
+  onPress(user) {
+    this.props.navigation.navigate("Profile", { id: user.id });
+  }
+
+  _renderItem(obj) {
+    const user = obj.item;
+    let name = `${user.forename} ${user.surname}`;
+    let photo = require("../../../assets/img/photo.jpg");
     return (
-      <TouchableOpacity
-        onPress={() => this.props.navigation.navigate("Profile", { id })}
-      >
+      <TouchableOpacity onPress={this.onPress.bind(this, user)}>
         <View style={styles.container}>
-          <View style={styles.text}>
-            <RkText>{translation}</RkText>
-          </View>
-          <View style={styles.attachment}>
-            <RkText rkType="right secondary5 hintColor">{source}</RkText>
+          <Avatar rkType="circle" style={styles.avatar} img={photo} />
+          <View style={styles.content}>
+            <View style={styles.contentHeader}>
+              <RkText rkType="header5">{name}</RkText>
+              <RkText rkType="secondary4 hintColor">{user.country}</RkText>
+            </View>
+            <RkText
+              numberOfLines={2}
+              rkType="primary3 mediumLine"
+              style={{ paddingTop: 5 }}
+            >
+              {user.city}
+            </RkText>
           </View>
         </View>
       </TouchableOpacity>
     );
   }
 
-  renderSeparator(sectionID, rowID) {
-    return <View style={styles.separator} />;
-  }
-
-  _renderHeader() {
-    return (
-      <View style={styles.searchContainer}>
-        <RkTextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChange={event => this._filter(event.nativeEvent.text)}
-          label={<Ionicons name="md-search" />}
-          rkType="row"
-          placeholder="Search"
-        />
-      </View>
-    );
-  }
-
-  _filter(text) {
-    let pattern = new RegExp(text, "i");
-    let words = this.words.filter(word => {
-      return word.translation.search(pattern) !== -1;
-    });
-
-    this.setData(words);
-  }
-
   render() {
-    const { loading } = this.state;
-
-    if (loading) {
-      return <ActivityIndicator />;
-    }
-
+    // const { id = 100, type = "children" } = this.props;
+    const { id, type } = this.props.navigation.state.params;
+    const query = type === "children" ? childrenQuery : accompliceQuery;
+    console.log(id, type, query);
     return (
-      <ListView
-        style={styles.root}
-        dataSource={this.state.data}
-        renderRow={this.renderRow}
-        renderSeparator={this.renderSeparator}
-        renderHeader={this.renderHeader}
-        enableEmptySections={true}
-      />
+      <View>
+        <Query query={query} variables={{ id }}>
+          {result => {
+            if (!result || result.loading) {
+              return <ActivityIndicator />;
+            }
+            if (result.error) {
+              return <ActivityIndicator />;
+            }
+            if (!result.error) {
+              const { data } = result;
+
+              return (
+                <FlatList
+                  style={styles.root}
+                  data={data.person.results}
+                  extraData={this.state}
+                  ListHeaderComponent={<View />}
+                  ItemSeparatorComponent={this._renderSeparator}
+                  keyExtractor={this._keyExtractor}
+                  renderItem={this.renderItem}
+                />
+              );
+            }
+          }}
+        </Query>
+      </View>
     );
   }
 }

@@ -19,8 +19,8 @@ class ProfileScreen extends Component {
       />
     )
   };
-  onPress() {
-    this.props.navigation.navigate("List", {});
+  onPress(id, type) {
+    this.props.navigation.navigate("List", { id, type });
   }
   render() {
     const { params } = this.props.navigation.state;
