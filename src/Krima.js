@@ -14,11 +14,12 @@ import { SearchScreen } from "./screens/search";
 import { ProfileScreen } from "./screens/profile";
 import { bootstrap } from "./theme/bootstrap";
 import cacheAssetsAsync from "./utilities/cacheAssetsAsync";
+import Config from "../config.json";
 
 import { AppLoading } from "expo";
 
 const client = new ApolloClient({
-  link: createHttpLink({ uri: "http://192.168.1.107:3000/graphql" }),
+  link: createHttpLink({ uri: `${Config.KRIMA_URL}/graphql` }),
   cache: new InMemoryCache()
 });
 
