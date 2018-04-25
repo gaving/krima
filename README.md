@@ -4,7 +4,7 @@ WIP POC
 
 ### Developing
 
-Edit `config.json` to configure your Google translate and wordsapi.com key.
+Edit `config.json` to configure your [Krima server](https://github.com/gaving/krima-server/) URL
 
 ```js
 {
